@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[dev-packages]
+
+[packages]
+fastapi = "==0.93.0"
+numpy = "==1.24.2"
+onnxruntime = "==1.14.1"
+torch = "==1.13.1"
+torchvision = "==0.14.1"
+opencv_python_headless = "==4.7.0.72"
+uvicorn = "==0.20.0"
+python-multipart = "*"
+
+[requires]
+python_version = "3.9"
