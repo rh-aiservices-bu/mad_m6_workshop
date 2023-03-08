@@ -36,8 +36,8 @@ class Detections(BaseModel):
 
 app = FastAPI()
 
-@app.post("/predictions/", response_model=Detections)
-async def create_upload_file(file: UploadFile = File(...)):
+@app.post("/predictions", response_model=Detections)
+async def predictions(file: UploadFile = File(...)):
     contents = await file.read()
     nparr = np.frombuffer(contents, np.uint8)
     infer_url = INFER_URL
@@ -49,11 +49,11 @@ async def create_upload_file(file: UploadFile = File(...)):
     raw_detections = infer().tolist()
     result = Detections(detections=[])
     for raw_detection in raw_detections:
-        box = Box(xMax=raw_detection[0], xMin=raw_detection[2], yMax=raw_detection[1], yMin=raw_detection[3])
+        box = Box(xMax=raw_detection[2]/640, xMin=raw_detection[0]/640, yMax=raw_detection[3]/640, yMin=raw_detection[1]/640)
         detection = Detection(box=box, 
             cValue=15, class_=classes[int(raw_detection[5])], label=classes[int(raw_detection[5])].capitalize(), score=raw_detection[4])
         result.detections.append(detection)
-
+    print(result)
     return result
 
 if __name__ == "__main__":
