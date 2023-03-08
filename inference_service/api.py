@@ -12,12 +12,31 @@ INFER_URL = os.getenv('INFER_URL', '')
 CONF_THRESHOLD = float(os.getenv('CONF_THRESHOLD', 0.2))
 IOU_THRESHOLD = float(os.getenv('IOU_THRESHOLD', 0.5))
 
-class Prediction(BaseModel):
-    predictions: List[List[float]]
+class Box(BaseModel):
+    xMax: float
+    xMin: float
+    yMax: float
+    yMin: float
+
+class Detection(BaseModel):
+    box: Box
+    cValue: float
+    class_: str
+    label: str
+    score: float
+
+    class Config:
+        allow_population_by_field_name = True
+        fields = {
+            'class_': 'class'
+        }
+
+class Detections(BaseModel):
+    detections: List[Detection]
 
 app = FastAPI()
 
-@app.post("/predictions/", response_model=Prediction)
+@app.post("/predictions/", response_model=Detections)
 async def create_upload_file(file: UploadFile = File(...)):
     contents = await file.read()
     nparr = np.frombuffer(contents, np.uint8)
@@ -26,8 +45,15 @@ async def create_upload_file(file: UploadFile = File(...)):
     conf = CONF_THRESHOLD
     iou = IOU_THRESHOLD
     infer = ort_v5(img, infer_url, conf, iou, 640, 'classes.txt')
-    result = infer().tolist()
-    return {"predictions": result}
+    raw_detections = infer().tolist()
+    result = Detections(detections=[])
+    for raw_detection in raw_detections:
+        box = Box(xMax=raw_detection[0], xMin=raw_detection[2], yMax=raw_detection[1], yMin=raw_detection[3])
+        detection = Detection(box=box, 
+            cValue=15, class_=raw_detection[5], label=raw_detection[5], score=raw_detection[4])
+        result.detections.append(detection)
+
+    return result
 
 if __name__ == "__main__":
     import uvicorn
