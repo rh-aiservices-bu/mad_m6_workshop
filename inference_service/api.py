@@ -45,12 +45,13 @@ async def create_upload_file(file: UploadFile = File(...)):
     conf = CONF_THRESHOLD
     iou = IOU_THRESHOLD
     infer = ort_v5(img, infer_url, conf, iou, 640, 'classes.txt')
+    classes = infer.class_name()
     raw_detections = infer().tolist()
     result = Detections(detections=[])
     for raw_detection in raw_detections:
         box = Box(xMax=raw_detection[0], xMin=raw_detection[2], yMax=raw_detection[1], yMin=raw_detection[3])
         detection = Detection(box=box, 
-            cValue=15, class_=raw_detection[5], label=raw_detection[5], score=raw_detection[4])
+            cValue=15, class_=classes[int(raw_detection[5])], label=classes[int(raw_detection[5])].capitalize(), score=raw_detection[4])
         result.detections.append(detection)
 
     return result
