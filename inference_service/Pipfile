@@ -3,17 +3,24 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
+[[source]]
+url = "https://download.pytorch.org/whl/cpu"
+verify_ssl = true
+name = "pytorch-cpu"
+
 [dev-packages]
+"watchdog[watchmedo]" = "~=2.3.1"
 
 [packages]
 fastapi = "==0.93.0"
 numpy = "==1.24.2"
 onnxruntime = "==1.14.1"
-torch = "==1.13.1"
-torchvision = "==0.14.1"
 opencv_python_headless = "==4.7.0.72"
+python-dotenv = "==1.0.0"
+python-multipart = "==0.0.6"
+torch = {version="==1.13.1", index="pytorch-cpu"}
+torchvision = {version="==0.14.1", index="pytorch-cpu"}
 uvicorn = "==0.20.0"
-python-multipart = "*"
 
 [requires]
 python_version = "3.9"
