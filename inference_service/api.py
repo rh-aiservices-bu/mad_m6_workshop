@@ -52,8 +52,8 @@ async def predictions(file: UploadFile = File(...)):
         box = Box(xMax=raw_detection[2]/640, xMin=raw_detection[0]/640, yMax=raw_detection[3]/640, yMin=raw_detection[1]/640)
         detection = Detection(box=box, 
             cValue=15, class_=classes[int(raw_detection[5])], label=classes[int(raw_detection[5])].capitalize(), score=raw_detection[4])
+        print(detection)
         result.detections.append(detection)
-    print(result)
     return result
 
 if __name__ == "__main__":
