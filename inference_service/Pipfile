@@ -10,6 +10,8 @@ name = "pytorch-cpu"
 
 [dev-packages]
 "watchdog[watchmedo]" = "~=2.3.1"
+"grpcio" = "~=1.51.3"
+"grpcio-tools" = "~=1.51.3"
 
 [packages]
 fastapi = "==0.93.0"
