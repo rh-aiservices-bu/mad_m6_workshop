@@ -1,0 +1,12 @@
+@import "_variables.scss";
+
+@mixin page {
+  height: 100%;
+  padding: $pagePadding;
+}
+
+@mixin center-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

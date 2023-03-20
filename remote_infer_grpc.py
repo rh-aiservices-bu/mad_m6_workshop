@@ -6,68 +6,85 @@ import torch
 import torchvision
 import argparse
 import requests
+import grpc
+import grpc_predict_v2_pb2_grpc
+import grpc_predict_v2_pb2
+import time
+import yaml
 
 class ort_v5:
-    def __init__(self, img_path, infer_url, conf_thres, iou_thres, img_size, classes):
-        self.img_path= img_path
-        self.infer_url=infer_url
-        self.conf_thres=conf_thres
-        self.iou_thres =iou_thres
+    def __init__(self, grpc_host, grpc_port, model_name, img_size, classes):
+        self.host = grpc_host
+        self.port = grpc_port
+        self.model_name = model_name
         self.img_size=img_size
         self.names= classes
         self.names_array= self.class_name()
+        options = [('grpc.max_receive_message_length', 100 * 1024 * 1024)]
+        self.channel = grpc.insecure_channel(f"{self.host}:{self.port}", options = options)
+        self.stub = grpc_predict_v2_pb2_grpc.GRPCInferenceServiceStub(self.channel)
 
-    def __call__(self):
+    def __call__(self, img_data, conf_thres, iou_thres):
         """
-        Makes an prediction on a givent image by calling an inference endpoint served by ModelMesh.
-        
+        Makes a prediction on a given image by calling an inference endpoint served by ModelMesh.
+
         The model is based on YoloV5 (https://github.com/ultralytics/yolov5), exported as ONNX, and served
         using OpenVino Model Server.
-        Image is written to a file.
         """
+        start_time = time.time()
         # image preprocessing
-        image_or= cv2.imread(self.img_path) # Read image
+        image_or= cv2.imread(img_data)
         image, ratio, dwdh = self.letterbox(image_or, auto=False) # Resize and pad image
         image = image.transpose((2, 0, 1)) # HWC->CHW for PyTorch model
         image = np.expand_dims(image, 0) # Model expects an array of images
         image = np.ascontiguousarray(image) # Speed up things by rewriting the array contiguously in memory
-        im = image.astype(np.float32) # Model exprect float32 data type
+        im = image.astype(np.float32) # Model expects float32 data type
         im /= 255 # Convert RGB values [0-255] to [0-1]
-        
-        # json payload
-        im_json = im.tolist() # Converts the array to a nestes list
-        # ModelMesh expected input format
-        # (get model input "name" and "shape" from your model)
-        data = {
-            "inputs": [
-                { 
-                 "name": "images",
-                 "shape": [1,3,640,640],
-                 "datatype": "FP32",
-                 "data": im_json
-                }
-            ]
-        }
 
-        # Call the inference endpoint
+        # request content building
+        inputs = []
+        inputs.append(grpc_predict_v2_pb2.ModelInferRequest().InferInputTensor())
+        inputs[0].name = "images"
+        inputs[0].datatype = "FP32"
+        inputs[0].shape.extend([1, 3, 640, 640])
+        arr = im.flatten()
+        inputs[0].contents.fp32_contents.extend(arr)
+
+        # request building
+        request = grpc_predict_v2_pb2.ModelInferRequest()
+        request.model_name = self.model_name
+        request.inputs.extend(inputs)
+
+        # Call the gRPC server and get the response
         t1 = time.time()
-        response = requests.post(self.infer_url, json=data)
+        try:
+            response = self.stub.ModelInfer(request)
+        except grpc.RpcError as e:
+            if e.code() == StatusCode.UNAVAILABLE:
+                raise Exception("Failed to connect to gRPC server")
+            else:
+                raise Exception(f"Failed to call gRPC server: {e.details()}")
         t2 = time.time()
+        inference_time = t2-t1
         
+        # unserialize response content
+        result_arr = np.frombuffer(response.raw_output_contents[0], dtype=np.float32)
+
         # Response processing
         names= self.class_name()
-        raw_output = response.json() # Extract to Json
-        arr = np.array(raw_output['outputs'][0]['data']) # Get the response data as a NumPy Array
-        output = torch.from_numpy(arr) # Create a tensor from array
+        output = torch.tensor(result_arr) # Create a tensor from array
         prediction_columns_number = 5 + len(self.names_array) # Model returns model returns [xywh, conf, class0, class1, ...]
         output = output.reshape(1, int(int(output.shape[0])/prediction_columns_number), prediction_columns_number) # Reshape the flat array prediction
-        out = self.non_max_suppression(output, self.conf_thres, self.iou_thres)[0] # Run NMS to remove overlapping boxes
-        print('Predictions format: each detection is a float64 array shaped as [top_left_corner_x, top_left_corner_y, bottom_right_corner_x, bottom_right_corner_y, confidence, class_index]')
-        print('Predictions:',out) # Print result prediction tensor
-        print('yolov5 ONNXRuntime Inference Time:', t2-t1) # Print inference time
+        out = self.non_max_suppression(output, conf_thres, iou_thres)[0] # Run NMS to remove overlapping boxes
         img = self.result(image_or,ratio, dwdh, out) # Draw the boxes from results
-        cv2.imwrite('result.jpg', img) # Save image
- 
+
+        end_time = time.time()
+        execution_time = end_time - start_time
+
+        result = f"{img_data} processed in {execution_time:.2f} seconds, inference time {inference_time:.2f} seconds"
+        
+        return img, out, result
+
     def box_iou(self,box1, box2, eps=1e-7):
         # https://github.com/pytorch/vision/blob/master/torchvision/ops/boxes.py
         """
@@ -215,15 +232,11 @@ class ort_v5:
         y[:, 3] = x[:, 1] + x[:, 3] / 2  # bottom right y
         return y
 
-    # Read classes.txt 
+    # Read classes
     def class_name(self):
-        classes=[]
-        file= open(self.names,'r')
-        while True:
-          name=file.readline().strip('\n')
-          if not name:
-            break
-          classes.append(name)
+        with open(self.names, 'r') as f:
+            data = yaml.safe_load(f)
+        classes = [data['names'][i] for i in data['names']]
         return classes
 
     def letterbox(self, im, color=(114, 114, 114), auto=True, scaleup=True, stride=32):
@@ -254,8 +267,7 @@ class ort_v5:
         left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
         im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)  # add border
         return im, r, (dw, dh)
-
-    # Display results
+    
     def result(self,img,ratio, dwdh, out):
         names= self.class_name()
         colors = {name:[random.randint(0, 255) for _ in range(3)] for i,name in enumerate(names)}   
@@ -272,17 +284,3 @@ class ort_v5:
             cv2.rectangle(img,box[:2],box[2:],color,2)
             cv2.putText(img,name,(box[0], box[1] - 2),cv2.FONT_HERSHEY_SIMPLEX,0.75,[0, 255, 0],thickness=2) 
         return img
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--image',help='Specify input image', default= '', type=str)
-    parser.add_argument('--infer_url', default='', type=str, help='inference url')
-    parser.add_argument('--conf_thres',default= 0.7, type=float, help='confidence threshold')
-    parser.add_argument('--iou_thres',type= float, default= 0.5, help='iou threshold')
-    parser.add_argument('--imgs', default=640,type= int, help='image size')
-    parser.add_argument('--classes',type=str,default='', help='class names')
-    opt= parser.parse_args()
-    print(opt)
-    ORT= ort_v5(opt.image, opt.infer_url, conf_thres= opt.conf_thres, iou_thres=opt.iou_thres, img_size=(opt.imgs,opt.imgs), classes=opt.classes)
-    ORT()
-  
