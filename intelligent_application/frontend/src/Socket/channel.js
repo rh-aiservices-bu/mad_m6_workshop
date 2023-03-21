@@ -63,7 +63,7 @@ function createSocketChannel() {
     };
 
     socket = new Sockette(getSocketUrl(), {
-      timeout: 2000,
+      timeout: 5000,
       onopen: onWsOpen,
       onmessage: onWsMessage,
       onreconnect: onWsOpen,

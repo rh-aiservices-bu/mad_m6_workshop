@@ -13,7 +13,7 @@ setup = (fastify) => {
         }
       }
     });
-  }, 3000);
+  }, 1000);
 };
 
 module.exports = setup;
