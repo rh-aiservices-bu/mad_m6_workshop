@@ -6,6 +6,7 @@ import cv2
 from remote_infer_grpc import ort_v5
 import os
 from dotenv import load_dotenv
+import ast
 load_dotenv()
 
 GRPC_HOST = os.getenv('GRPC_HOST', '')
@@ -14,7 +15,7 @@ MODEL_NAME = os.getenv('MODEL_NAME', 'coolstore')
 CONF_THRESHOLD = float(os.getenv('CONF_THRESHOLD', 0.2))
 IOU_THRESHOLD = float(os.getenv('IOU_THRESHOLD', 0.5))
 CLASSES_FILE = 'classes.yaml'
-COUPON_VALUE = [5,10,15]
+COUPON_VALUE = ast.literal_eval(os.getenv('COUPON_VALUE', '[5,10,15]'))
 
 class Box(BaseModel):
     xMax: float
