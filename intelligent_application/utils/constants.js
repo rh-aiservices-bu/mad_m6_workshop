@@ -19,5 +19,4 @@ const constants = {
   DISPLAY_BOX,
 };
 
-console.log(constants)
 module.exports = constants;

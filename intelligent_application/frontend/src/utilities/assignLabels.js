@@ -37,9 +37,7 @@ let labelColors = [
 ];
 
 function assignLabels(currentLabels, responseData) {
-  console.log('entering assign labels')
   let { detections } = responseData;
-  console.log(responseData)
   let usedColors = new Set();
   let newLabels = {};
   detections.sort((a, b) => a.score - b.score);

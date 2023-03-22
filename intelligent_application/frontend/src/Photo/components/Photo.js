@@ -169,7 +169,6 @@ function Photo({
     const angle = 0.25;
 
     if ( (x + 0.75 * width + 135) < imageCanvas.width) {  // Draw on the right side
-      console.log('Draw on the right side')
       const baseX = x + 0.75 * width;
       const baseY = y + 0.3 * height;
       // Draw coupon
@@ -196,7 +195,6 @@ function Photo({
       ctx.rotate(-angle);
       ctx.translate(-baseX, -baseY)
     } else { // Draw on the left side
-      console.log('Draw on the left side')
       const baseX = x + 0.25 * width;
       const baseY = y + 0.3 * height;
       // Draw coupon

@@ -35,7 +35,6 @@ module.exports = async function (fastify, opts) {
     const { code, data } = await requestObjectDetection(base64data);
     reply.code(code);
     data.displayBox = DISPLAY_BOX;
-    console.log(data);
     return data;
   });
 };
@@ -70,9 +69,7 @@ async function requestObjectDetection(image) {
       headers: { ...formData.getHeaders(),},
     });
     code = response.status;
-    console.log(code)
     data = response.data;
-    console.log(data)
   } catch (error) {
     if (error.response) {
       code = error.response.status;
