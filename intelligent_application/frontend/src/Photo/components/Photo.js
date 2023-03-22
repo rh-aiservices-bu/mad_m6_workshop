@@ -116,11 +116,11 @@ function Photo({
     if (!prediction || !prediction.detections || !imageCanvas.getContext) {
       return;
     }
-
-    prediction.detections.filter((d) => d.score > minScore).forEach((d) => drawDetection(d));
+    const displayBox = prediction.displayBox;
+    prediction.detections.filter((d) => d.score > minScore).forEach((d) => drawDetection(d,displayBox));
   }
 
-  function drawDetection({ box, label, score, cValue }) {
+  function drawDetection({ box, label, score, cValue }, displayBox) {
     const drawScore = true;
     const textBgHeight = 14;
     const padding = 2;
@@ -136,9 +136,11 @@ function Photo({
     const labelWidth = label.length * letterWidth + scoreWidth + padding * 2;
 
     const ctx = imageCanvas.getContext("2d");
-    drawBox(ctx, x, y, width, height, labelSetting.bgColor);
-    drawBoxTextBG(ctx, x, y + height - textBgHeight, labelWidth, textBgHeight, labelSetting.bgColor);
-    drawBoxText(ctx, text, x + padding, y + height - padding);
+    if (displayBox) {
+      drawBox(ctx, x, y, width, height, labelSetting.bgColor);
+      drawBoxTextBG(ctx, x, y + height - textBgHeight, labelWidth, textBgHeight, labelSetting.bgColor);
+      drawBoxText(ctx, text, x + padding, y + height - padding);
+    }
     drawCoupon(ctx, cValue, x, y, width, height);
     //clearZone(ctx, x + 5, y + height - textBgHeight - 4, labelWidth, textBgHeight);
     //clearZone(ctx, x, y, width, height);

@@ -4,7 +4,7 @@ const moment = require("moment");
 const _ = require("lodash");
 const storage = require("../../../storage");
 const axios = require("../../../utils/axios");
-const { OBJECT_DETECTION_URL } = require("../../../utils/constants");
+const { OBJECT_DETECTION_URL, DISPLAY_BOX } = require("../../../utils/constants");
 const imageStoragePrefix = "images";
 const FormData = require('form-data');
 const Blob = require('buffer');
@@ -34,6 +34,8 @@ module.exports = async function (fastify, opts) {
 
     const { code, data } = await requestObjectDetection(base64data);
     reply.code(code);
+    data.displayBox = DISPLAY_BOX;
+    console.log(data);
     return data;
   });
 };

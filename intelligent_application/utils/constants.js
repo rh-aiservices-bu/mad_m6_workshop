@@ -6,12 +6,17 @@ const OBJECT_DETECTION_URL = env
   .get("OBJECT_DETECTION_URL")
   .default("http://localhost:8000/predictions")
   .asString();
+const DISPLAY_BOX = env
+  .get("DISPLAY_BOX")
+  .default("true")
+  .asBool();
 
 const constants = {
   PORT,
   IP,
   LOG_LEVEL,
   OBJECT_DETECTION_URL,
+  DISPLAY_BOX,
 };
 
 console.log(constants)
