@@ -1,0 +1,90 @@
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: ia-frontend
+  labels:
+    app: ia-frontend
+    app.kubernetes.io/component: ia-frontend
+    app.kubernetes.io/instance: ia-frontend
+    app.kubernetes.io/name: ia-frontend
+    app.kubernetes.io/part-of: intelligent-application
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ia-frontend
+      app.kubernetes.io/component: ia-frontend
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: ia-frontend
+        app.kubernetes.io/component: ia-frontend
+    spec:
+      containers:
+        - name: ia-frontend
+          image: >-
+            quay.io/rh-aiservices-bu/mad-m6-workshop-intelligent-application:latest
+          env:
+            - name: OBJECT_DETECTION_URL
+              value: 'http://ia-inference-service:8000/predictions'
+            - name: DISPLAY_BOX
+              value: 'true'
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: Always
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ia-frontend
+  labels:
+    app: ia-frontend
+    app.kubernetes.io/component: ia-frontend
+    app.kubernetes.io/instance: ia-frontend
+    app.kubernetes.io/name: ia-frontend
+    app.kubernetes.io/part-of: intelligent-application
+spec:
+  ports:
+    - name: 8080-tcp
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: ia-frontend
+    app.kubernetes.io/component: ia-frontend
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: ia-frontend
+  labels:
+    app: ia-frontend
+    app.kubernetes.io/component: ia-frontend
+    app.kubernetes.io/instance: ia-frontend
+    app.kubernetes.io/name: ia-frontend
+    app.kubernetes.io/part-of: intelligent-application
+spec:
+  to:
+    kind: Service
+    name: ia-frontend
+    weight: 100
+  port:
+    targetPort: 8080-tcp
+  tls:
+    termination: edge
+  wildcardPolicy: None
