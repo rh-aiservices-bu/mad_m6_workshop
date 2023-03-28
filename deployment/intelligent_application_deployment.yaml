@@ -28,7 +28,7 @@ spec:
             quay.io/rh-aiservices-bu/mad-m6-workshop-intelligent-application:latest
           env:
             - name: OBJECT_DETECTION_URL
-              value: 'http://ia-inference-service:8000/predictions'
+              value: 'http://ia-inference:8000/predictions'
             - name: DISPLAY_BOX
               value: 'true'
           resources: {}
