@@ -126,7 +126,7 @@ function Photo({
     const padding = 2;
     const letterWidth = 7.25;
     const scoreWidth = drawScore ? 4 * letterWidth : 0;
-    const text = drawScore ? `${label} ${Math.floor(score * 100)}%` : label;
+    const text = drawScore ? `${label} ${Math.floor(score * 100)}% Confidence` : label;
 
     const width = Math.floor((box.xMax - box.xMin) * imageCanvas.width);
     const height = Math.floor((box.yMax - box.yMin) * imageCanvas.height);
@@ -165,7 +165,7 @@ function Photo({
   }
 
   function drawCoupon(ctx, message, x, y, width, height) {
-    const couponText = String(message) + '%';
+    const couponText = String(message) + '% Off!';
     const angle = 0.25;
 
     if ( (x + 0.75 * width + 135) < imageCanvas.width) {  // Draw on the right side
@@ -183,7 +183,7 @@ function Photo({
       ctx.lineTo(0, 15);
       ctx.closePath();
       // Hole
-      ctx.arc(15, 7, 7, 0, Math.PI * 2, false) 
+      ctx.arc(15, 7, 7, 0, Math.PI * 2, false)
       ctx.fillStyle = "red";
       ctx.mozFillRule = 'evenodd'; //for old firefox 1~30
       ctx.fill('evenodd'); //for firefox 31+, IE 11+, chrome
@@ -209,7 +209,7 @@ function Photo({
       ctx.lineTo(0, 15);
       ctx.closePath();
       // Hole
-      ctx.arc(-15, 7, 7, 0, Math.PI * 2, false) 
+      ctx.arc(-15, 7, 7, 0, Math.PI * 2, false)
       ctx.fillStyle = "red";
       ctx.mozFillRule = 'evenodd'; //for old firefox 1~30
       ctx.fill('evenodd'); //for firefox 31+, IE 11+, chrome
@@ -286,7 +286,7 @@ function Photo({
     const displayImage =
       !predictionPending && !predictionError && prediction ? {} : { display: "none" };
 
-    
+
     let displayNoObjects;
     /*
     if (
