@@ -183,7 +183,7 @@ function Photo({
       ctx.lineTo(25 + roundingRadius*(Math.tan(Math.PI/8)-Math.sin(Math.PI/4)), -25 + roundingRadius*(1-Math.cos(Math.PI/4)));
       ctx.arc(25 + roundingRadius*Math.tan(Math.PI/8), -25 + roundingRadius, roundingRadius, 5*Math.PI/4, 3*Math.PI/2, false)
       ctx.lineTo(135 - roundingRadius*Math.tan(Math.PI/4), -25);
-      ctx.arc(135 - roundingRadius, -25 + roundingRadius,roundingRadius, 3*Math.PI/2, 2*Math.PI, false)
+      ctx.arc(135 - roundingRadius, -25 + roundingRadius, roundingRadius, 3*Math.PI/2, 2*Math.PI, false)
       ctx.lineTo(135, 40 - roundingRadius);
       ctx.arc(135 - roundingRadius, 40 - roundingRadius,roundingRadius, 0, Math.PI/2, false)
       ctx.lineTo(25 + roundingRadius*Math.tan(Math.PI/8), 40);
@@ -221,20 +221,35 @@ function Photo({
       ctx.translate(baseX, baseY)
       ctx.rotate(-angle);
       ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(-25, -25);
-      ctx.lineTo(-135, -25);
-      ctx.lineTo(-135, 40);
-      ctx.lineTo(-25, 40);
-      ctx.lineTo(0, 15);
+      ctx.moveTo(0, roundingRadius*Math.tan(Math.PI/8));
+      ctx.arc(-roundingRadius, roundingRadius*Math.tan(Math.PI/8), roundingRadius, 0, 7*Math.PI/4, true)
+      ctx.lineTo(-25 - roundingRadius*(Math.tan(Math.PI/8)-Math.sin(Math.PI/4)), -25 + roundingRadius*(1-Math.cos(Math.PI/4)));
+      ctx.arc(-25 - roundingRadius*Math.tan(Math.PI/8), -25 + roundingRadius, roundingRadius, 7*Math.PI/4, 3*Math.PI/2, true)
+      ctx.lineTo(-135 + roundingRadius*Math.tan(Math.PI/4), -25);
+      ctx.arc(-135 + roundingRadius, -25 + roundingRadius, roundingRadius, 3*Math.PI/2, Math.PI, true)
+      ctx.lineTo(-135, 40 - roundingRadius);
+      ctx.arc(-135 + roundingRadius, 40 - roundingRadius,roundingRadius, Math.PI, Math.PI/2, true)
+      ctx.lineTo(-25 - roundingRadius*Math.tan(Math.PI/8), 40);
+      ctx.arc(-25 - roundingRadius*Math.tan(Math.PI/8), 40 - roundingRadius, roundingRadius, Math.PI/2, Math.PI/4, true)
+      ctx.lineTo(-roundingRadius*(1-Math.cos(Math.PI/4)), 15 - roundingRadius*Math.tan(Math.PI/8) + roundingRadius*Math.sin(Math.PI/4));
+      ctx.arc(-roundingRadius, 15 - roundingRadius*Math.tan(Math.PI/8), roundingRadius, Math.PI/4, 0, true);
       ctx.closePath();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.setLineDash([]);
+      ctx.stroke();
       // Hole
       ctx.arc(-15, 7, 7, 0, Math.PI * 2, false)
+      // Painting
       ctx.fillStyle = "red";
       ctx.globalAlpha = 0.75;
       ctx.mozFillRule = 'evenodd'; //for old firefox 1~30
       ctx.fill('evenodd'); //for firefox 31+, IE 11+, chrome
       ctx.globalAlpha = 1.0;
+      // Hole stroke
+      ctx.beginPath();
+      ctx.arc(-15, 7, 7, 0, Math.PI * 2, false)
+      ctx.stroke();
       // Text
       ctx.font = "20px Verdana";
       ctx.fillStyle = "white";
