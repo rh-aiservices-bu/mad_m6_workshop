@@ -124,7 +124,7 @@ function Photo({
     const drawScore = true;
     const textBgHeight = 14;
     const padding = 2;
-    const letterWidth = 7.25;
+    const letterWidth = 6;
     const scoreWidth = drawScore ? 4 * letterWidth : 0;
     const text = drawScore ? `${label} ${Math.floor(score * 100)}% Confidence` : label;
 
@@ -133,7 +133,7 @@ function Photo({
     const x = Math.floor(box.xMin * imageCanvas.width);
     const y = Math.floor(box.yMin * imageCanvas.height);
     const labelSetting = labelSettings[label];
-    const labelWidth = label.length * letterWidth + scoreWidth + padding * 2;
+    const labelWidth = text.length * letterWidth + scoreWidth + padding * 2;
 
     const ctx = imageCanvas.getContext("2d");
     if (displayBox) {
@@ -155,11 +155,13 @@ function Photo({
 
   function drawBoxTextBG(ctx, x, y, width, height, color) {
     ctx.fillStyle = color;
+    ctx.globalAlpha = 0.5;
     ctx.fillRect(x, y, width, height);
+    ctx.globalAlpha = 1.0;
   }
 
   function drawBoxText(ctx, text, x, y) {
-    ctx.font = "12px Mono";
+    ctx.font = "12px Verdana";
     ctx.fillStyle = "white";
     ctx.fillText(text, x, y);
   }
@@ -185,8 +187,10 @@ function Photo({
       // Hole
       ctx.arc(15, 7, 7, 0, Math.PI * 2, false)
       ctx.fillStyle = "red";
+      ctx.globalAlpha = 0.75;
       ctx.mozFillRule = 'evenodd'; //for old firefox 1~30
       ctx.fill('evenodd'); //for firefox 31+, IE 11+, chrome
+      ctx.globalAlpha = 1.0;
       // Text
       ctx.font = "20px Verdana";
       ctx.fillStyle = "white";
@@ -211,8 +215,10 @@ function Photo({
       // Hole
       ctx.arc(-15, 7, 7, 0, Math.PI * 2, false)
       ctx.fillStyle = "red";
+      ctx.globalAlpha = 0.75;
       ctx.mozFillRule = 'evenodd'; //for old firefox 1~30
       ctx.fill('evenodd'); //for firefox 31+, IE 11+, chrome
+      ctx.globalAlpha = 1.0;
       // Text
       ctx.font = "20px Verdana";
       ctx.fillStyle = "white";
